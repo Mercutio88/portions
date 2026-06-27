@@ -1,5 +1,5 @@
 <!--
-  Daily Portion Tracker (phone/offline build) — Better Bites "What to Eat in a Day" (Men 19-50)
+  Daily Portion Tracker (phone/offline build)
   Saves to the device via localStorage. Best used hosted (https) + Added to Home Screen.
 -->
 <meta charset="utf-8">
@@ -27,7 +27,6 @@
     backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .head-inner{max-width:560px;margin:0 auto;padding:12px 14px}
   .title{font-size:15px;font-weight:700;letter-spacing:-.2px}
-  .sub{font-size:12px;color:var(--muted);margin-top:1px}
   .datebar{display:flex;align-items:center;gap:8px;margin-top:10px}
   .datebar .day{flex:1;text-align:center;font-size:15px;font-weight:600}
   .navbtn{width:40px;height:40px;border:1px solid var(--line);background:var(--card);
@@ -48,21 +47,30 @@
     color:var(--muted);cursor:pointer}
   .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:14px;margin:10px 0;display:flex;align-items:center;gap:12px}
+    box-shadow:var(--shadow);padding:14px;margin:10px 0;display:flex;
+    align-items:center;gap:12px;position:relative}
+  .edit-btn{position:absolute;top:8px;right:8px;background:none;border:none;
+    font-size:13px;color:var(--muted);cursor:pointer;padding:4px 6px;
+    opacity:.45;border-radius:6px;line-height:1}
+  .edit-btn:active{opacity:1;background:var(--line)}
   .icon{font-size:26px;width:34px;text-align:center;flex:none}
   .meta{flex:1;min-width:0}
-  .name{font-size:15px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .name{font-size:15px;font-weight:700;display:flex;align-items:center;gap:7px;
+    padding-right:22px}
   .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;
-    background:var(--accent-soft);color:var(--accent);letter-spacing:.3px}
+    background:var(--accent-soft);color:var(--accent);letter-spacing:.3px;white-space:nowrap}
   .badge.limit{background:var(--limit-soft);color:var(--limit)}
   .target{font-size:12px;color:var(--muted);margin-top:2px}
   .dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
-  .dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--line);flex:none}
   .dot.fill{background:var(--accent)}
   .dot.fill.limit{background:var(--limit)}
+  .dot.half{background:linear-gradient(to right,var(--accent) 50%,var(--line) 50%)}
+  .dot.half.limit{background:linear-gradient(to right,var(--limit) 50%,var(--line) 50%)}
   .dot.over{background:var(--over)}
+  .dot.over.half{background:linear-gradient(to right,var(--over) 50%,var(--line) 50%)}
   .controls{display:flex;align-items:center;gap:8px;flex:none}
-  .count{min-width:26px;text-align:center;font-size:20px;font-weight:800;
+  .count{min-width:36px;text-align:center;font-size:20px;font-weight:800;
     font-variant-numeric:tabular-nums}
   .pm{width:46px;height:46px;border-radius:50%;border:none;font-size:24px;font-weight:600;
     cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
@@ -71,7 +79,12 @@
   .pm:active{transform:scale(.92)}
   .pm:disabled{opacity:.35;cursor:default}
   .card.done{border-color:var(--accent);background:linear-gradient(0deg,var(--accent-soft),#fff 60%)}
-  .card.over{border-color:var(--over)}
+  .card.overlimit{border-color:var(--over)}
+  .add-group-card{display:flex;align-items:center;justify-content:center;gap:8px;
+    background:none;border:2px dashed var(--line);border-radius:var(--radius);
+    padding:16px;margin:10px 0;cursor:pointer;color:var(--muted);font-size:14px;
+    font-weight:600;width:100%}
+  .add-group-card:active{border-color:var(--accent);color:var(--accent)}
   .footer-actions{display:flex;gap:8px;margin-top:14px}
   .btn{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);
     background:var(--card);font-size:14px;font-weight:600;cursor:pointer;color:var(--ink)}
@@ -93,6 +106,54 @@
   .hint{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
   .savewarn{font-size:11px;text-align:center;color:var(--over);margin-top:8px;display:none}
   .savewarn.show{display:block}
+
+  /* ── modal ── */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
+    display:flex;align-items:flex-end;justify-content:center;
+    padding-bottom:env(safe-area-inset-bottom)}
+  .modal{background:var(--card);border-radius:24px 24px 0 0;
+    padding:24px 20px 36px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto}
+  @media(min-width:580px){
+    .overlay{align-items:center}
+    .modal{border-radius:24px;max-width:480px;margin:20px}
+  }
+  .modal-title{font-size:17px;font-weight:800;margin-bottom:20px;text-align:center}
+  .mfield{margin-bottom:14px}
+  .mfield label{display:block;font-size:11px;font-weight:700;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .mfield input{width:100%;padding:12px 14px;border:1px solid var(--line);
+    border-radius:12px;font-size:16px;background:var(--bg);color:var(--ink);outline:none}
+  .mfield input:focus{border-color:var(--accent)}
+  .emoji-row{display:flex;gap:10px;align-items:center}
+  .emoji-preview{font-size:30px;width:54px;height:48px;border:1px solid var(--line);
+    border-radius:12px;background:var(--bg);display:flex;align-items:center;
+    justify-content:center;flex:none}
+  .emoji-input{font-size:22px !important}
+  .suggest-btn{width:100%;margin-top:7px;background:none;border:1px solid var(--line);
+    border-radius:10px;padding:7px 12px;font-size:12px;cursor:pointer;
+    color:var(--muted);font-weight:600}
+  .suggest-btn:active{background:var(--line)}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;
+    padding:13px 14px;background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    gap:12px}
+  .toggle-info .tl{font-size:14px;font-weight:600}
+  .toggle-info .ts{font-size:11px;color:var(--muted);margin-top:2px}
+  .tswitch{position:relative;width:44px;height:26px;flex:none}
+  .tswitch input{opacity:0;width:0;height:0;position:absolute}
+  .tslider{position:absolute;inset:0;background:var(--line);border-radius:99px;
+    cursor:pointer;transition:background .2s}
+  .tslider:before{content:"";position:absolute;width:20px;height:20px;
+    left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;
+    box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .tswitch input:checked + .tslider{background:var(--limit)}
+  .tswitch input:checked + .tslider:before{transform:translateX(18px)}
+  .modal-actions{display:flex;gap:8px;margin-top:22px}
+  .mbtn{flex:1;padding:14px;border-radius:14px;border:none;font-size:15px;
+    font-weight:700;cursor:pointer}
+  .mbtn.primary{background:var(--accent);color:#fff}
+  .mbtn.secondary{background:var(--line);color:var(--ink)}
+  .mbtn.danger{background:var(--limit-soft);color:var(--limit)}
+  .mbtn:active{transform:scale(.97)}
 </style>
 
 <header>
@@ -116,13 +177,14 @@
   </div>
   <div id="viewToday">
     <div id="groups"></div>
-    <div class="complete-banner" id="banner">&#10003; All core groups complete for the day</div>
+    <button class="add-group-card" id="addGroupBtn">＋ Add Group</button>
+    <div class="complete-banner" id="banner">&#10003; All goal groups complete for the day</div>
     <div class="footer-actions">
       <button class="btn warn" id="resetDay">Reset this day</button>
     </div>
     <div class="savewarn" id="saveWarn">&#9888; Saving is disabled in this browser context &mdash; data won&rsquo;t persist. Host the file or Add to Home Screen.</div>
-    <div class="hint">Tap + each time you eat a portion. Targets and remaining update live.<br>
-      &ldquo;Other foods&rdquo; is a daily limit (aim to stay at or under 3), not a goal.</div>
+    <div class="hint">Each tap of + adds half a portion &mdash; tap twice for a whole portion.<br>
+      Tap ✏ on any card to edit its goal or delete it. Limit groups don&rsquo;t count toward the streak.</div>
   </div>
   <div id="viewHistory" style="display:none">
     <div class="footer-actions">
@@ -130,25 +192,24 @@
     </div>
     <div class="hist-scroll"><div id="histTable"></div></div>
     <div class="hint">CSV opens directly in Excel. Each row is one day; numbers are portions logged.<br>
-      Export occasionally as a backup of your history.</div>
+      Timestamps for every addition are included in the export (not shown here).</div>
   </div>
 </div>
 
 <script>
-const GROUPS = [
-  {key:"protein", name:"Protein / Meat",   icon:"\u{1F357}", min:3, max:3, limit:false},
-  {key:"veg",     name:"Vegetables",       icon:"\u{1F966}", min:6, max:6, limit:false},
-  {key:"fruit",   name:"Fruit",            icon:"\u{1F34E}", min:2, max:2, limit:false},
-  {key:"dairy",   name:"Dairy",            icon:"\u{1F95B}", min:2, max:3, limit:false},
-  {key:"bread",   name:"Breads & Cereals", icon:"\u{1F35E}", min:6, max:6, limit:false},
-  {key:"fats",    name:"Fats",             icon:"\u{1F951}", min:4, max:4, limit:false},
-  {key:"other",   name:"Other foods",      icon:"\u{1F36B}", min:0, max:3, limit:true },
+// ── defaults ──────────────────────────────────────────────────────────────────
+const DEFAULT_GROUPS = [
+  {key:"protein", name:"Protein / Meat",   icon:"\u{1F357}", goal:3, isLimit:false},
+  {key:"veg",     name:"Vegetables",       icon:"\u{1F966}", goal:6, isLimit:false},
+  {key:"fruit",   name:"Fruit",            icon:"\u{1F34E}", goal:2, isLimit:false},
+  {key:"dairy",   name:"Dairy",            icon:"\u{1F95B}", goal:2, isLimit:false},
+  {key:"bread",   name:"Breads & Cereals", icon:"\u{1F35E}", goal:6, isLimit:false},
+  {key:"fats",    name:"Fats",             icon:"\u{1F951}", goal:4, isLimit:false},
+  {key:"other",   name:"Other foods",      icon:"\u{1F36B}", goal:3, isLimit:true },
 ];
-const CORE = GROUPS.filter(g=>!g.limit);
-const TOTAL_TARGET = CORE.reduce((s,g)=>s+g.min,0);
-const NS = "bbpt:"; // localStorage namespace
 
-// --- device storage (persists across sessions in a normal browser) ---
+// ── storage ───────────────────────────────────────────────────────────────────
+const NS = "bbpt:";
 let storageOK = true;
 const mem = {};
 (function(){ try{ const t="__t"; localStorage.setItem(t,"1"); localStorage.removeItem(t); }
@@ -156,117 +217,381 @@ const mem = {};
 function sGet(k){ try{ return localStorage.getItem(NS+k); }catch(e){ return (k in mem)?mem[k]:null; } }
 function sSet(k,v){ try{ localStorage.setItem(NS+k,v); }catch(e){ mem[k]=v; } }
 function sList(p){ try{ const out=[]; for(let i=0;i<localStorage.length;i++){ const key=localStorage.key(i);
-  if(key && key.indexOf(NS+p)===0) out.push(key.slice(NS.length)); } return out; }
+  if(key&&key.startsWith(NS+p)) out.push(key.slice(NS.length)); } return out; }
   catch(e){ return Object.keys(mem).filter(k=>k.startsWith(p)); } }
 
+// ── groups ────────────────────────────────────────────────────────────────────
+let GROUPS;
+function loadGroups(){
+  const raw=sGet("groups");
+  GROUPS = raw ? JSON.parse(raw) : DEFAULT_GROUPS.map(g=>({...g}));
+}
+function saveGroups(){ sSet("groups",JSON.stringify(GROUPS)); }
+loadGroups();
+
+// ── date / format helpers ─────────────────────────────────────────────────────
 function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function parseYmd(s){ const [y,m,dd]=s.split("-").map(Number); return new Date(y,m-1,dd); }
-const TODAY = ymd(new Date());
-let current = TODAY, counts = {};
-function blank(){ const o={}; GROUPS.forEach(g=>o[g.key]=0); return o; }
-function load(date){ const raw=sGet("day:"+date); counts = raw?Object.assign(blank(),JSON.parse(raw)):blank(); }
-function save(){ sSet("day:"+current, JSON.stringify(counts)); }
 function prettyDate(s){ return parseYmd(s).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"}); }
-function dayComplete(c){ return CORE.every(g=>c[g.key]>=g.min); }
+function nowMinute(){
+  const d=new Date();
+  return ymd(d)+"T"+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function fmt(n){
+  const w=Math.floor(n), h=(n%1)>0.1;
+  if(w===0&&h) return "½";
+  if(h) return w+"½";
+  return String(w);
+}
+
+// ── day data ──────────────────────────────────────────────────────────────────
+const TODAY=ymd(new Date());
+let current=TODAY, counts={}, dayTs={};
+
+function blankCounts(){ const o={}; GROUPS.forEach(g=>o[g.key]=0); return o; }
+function blankTs(){ const o={}; GROUPS.forEach(g=>o[g.key]=[]); return o; }
+
+function load(date){
+  const raw=sGet("day:"+date);
+  counts=blankCounts();
+  if(raw){ const p=JSON.parse(raw); Object.keys(p).forEach(k=>{ if(typeof p[k]==="number") counts[k]=p[k]; }); }
+  GROUPS.forEach(g=>{ if(!(g.key in counts)) counts[g.key]=0; });
+  const tsRaw=sGet("ts:"+date);
+  dayTs = tsRaw ? JSON.parse(tsRaw) : blankTs();
+  GROUPS.forEach(g=>{ if(!Array.isArray(dayTs[g.key])) dayTs[g.key]=[]; });
+}
+
+function save(){
+  sSet("day:"+current, JSON.stringify(counts));
+  sSet("ts:"+current,  JSON.stringify(dayTs));
+}
+
+function addPortion(key){
+  counts[key]=+((counts[key]||0)+0.5).toFixed(1);
+  if(!Array.isArray(dayTs[key])) dayTs[key]=[];
+  dayTs[key].push(nowMinute());
+  save();
+}
+
+function removePortion(key){
+  if((counts[key]||0)<=0) return;
+  counts[key]=+((counts[key]||0)-0.5).toFixed(1);
+  if(dayTs[key]&&dayTs[key].length>0) dayTs[key].pop();
+  save();
+}
+
+// ── streak ────────────────────────────────────────────────────────────────────
+function coreGroups(){ return GROUPS.filter(g=>!g.isLimit); }
+function dayComplete(c){ return coreGroups().every(g=>(c[g.key]||0)>=g.goal); }
 
 function calcStreak(){
-  let streak = 0;
-  const d = new Date();
-  const todayRaw = sGet("day:" + ymd(d));
-  const todayCounts = todayRaw ? JSON.parse(todayRaw) : blank();
-  if(!dayComplete(todayCounts)) d.setDate(d.getDate() - 1);
-  for(let i = 0; i < 365; i++){
-    const dt = ymd(d);
-    const raw = sGet("day:" + dt);
-    const c = raw ? JSON.parse(raw) : blank();
-    if(dayComplete(c)){ streak++; d.setDate(d.getDate()-1); } else break;
+  let streak=0;
+  const d=new Date();
+  const todayRaw=sGet("day:"+ymd(d));
+  if(!dayComplete(todayRaw?JSON.parse(todayRaw):{})) d.setDate(d.getDate()-1);
+  for(let i=0;i<365;i++){
+    const raw=sGet("day:"+ymd(d));
+    if(raw&&dayComplete(JSON.parse(raw))){ streak++; d.setDate(d.getDate()-1); } else break;
   }
   return streak;
 }
 
+// ── dot builder ───────────────────────────────────────────────────────────────
+function buildDots(n, goal, isLimit){
+  let dots="";
+  const w=Math.floor(n), h=(n%1)>0.1, lc=isLimit?" limit":"";
+  for(let i=0;i<goal;i++){
+    if(i<w)              dots+=`<span class="dot fill${lc}"></span>`;
+    else if(i===w&&h)    dots+=`<span class="dot half${lc}"></span>`;
+    else                 dots+=`<span class="dot"></span>`;
+  }
+  const over=Math.max(0,n-goal);
+  const ow=Math.floor(over), oh=(over%1)>0.1;
+  for(let i=0;i<ow;i++) dots+=`<span class="dot over"></span>`;
+  if(oh)                 dots+=`<span class="dot over half"></span>`;
+  return dots||`<span class="target">&mdash;</span>`;
+}
+
+// ── render header ─────────────────────────────────────────────────────────────
 function renderHeader(){
-  document.getElementById("dayLabel").textContent = (current===TODAY)?"Today":prettyDate(current);
-  let got=0; CORE.forEach(g=>got+=Math.min(counts[g.key],g.min));
-  const pct=Math.round(got/TOTAL_TARGET*100);
+  document.getElementById("dayLabel").textContent=(current===TODAY)?"Today":prettyDate(current);
+  const core=coreGroups();
+  const total=core.reduce((s,g)=>s+g.goal,0);
+  let got=0; core.forEach(g=>got+=Math.min(counts[g.key]||0,g.goal));
+  const pct=total>0?Math.round(got/total*100):0;
   document.getElementById("overallBar").style.width=pct+"%";
-  document.getElementById("overallText").textContent=got+" of "+TOTAL_TARGET+" core portions";
+  document.getElementById("overallText").textContent=fmt(got)+" of "+total+" core portions";
   document.getElementById("overallPct").textContent=pct+"%";
   document.getElementById("banner").classList.toggle("show",dayComplete(counts));
   document.getElementById("saveWarn").classList.toggle("show",!storageOK);
-  document.getElementById("streakCount").textContent = calcStreak();
+  document.getElementById("streakCount").textContent=calcStreak();
 }
 
+// ── render groups ─────────────────────────────────────────────────────────────
 function renderGroups(){
   const wrap=document.getElementById("groups"); wrap.innerHTML="";
-  GROUPS.forEach(g=>{
-    const n=counts[g.key];
+  GROUPS.forEach((g,idx)=>{
+    const n=counts[g.key]||0;
     const card=document.createElement("div"); card.className="card";
-    if(!g.limit && n>=g.min) card.classList.add("done");
-    if(g.limit && n>g.max)  card.classList.add("over");
-    const total=g.max; let dots="";
-    for(let i=0;i<total;i++){ let cls="dot"; if(i<n) cls+= g.limit?" fill limit":" fill"; dots+='<span class="'+cls+'"></span>'; }
-    for(let i=total;i<n;i++) dots+='<span class="dot over"></span>';
+    if(!g.isLimit&&n>=g.goal) card.classList.add("done");
+    if(g.isLimit&&n>g.goal)   card.classList.add("overlimit");
+
     let targetTxt;
-    if(g.limit){ const left=g.max-n; targetTxt=(n>g.max)?("\u26A0 "+(n-g.max)+" over the daily limit of "+g.max):("Limit "+g.max+" \u00B7 "+left+" left before limit"); }
-    else if(g.min!==g.max){ const left=Math.max(0,g.min-n); targetTxt=(n>=g.min)?("Goal met ("+g.min+"\u2013"+g.max+") \u00B7 "+n+"/"+g.max):("Target "+g.min+"\u2013"+g.max+" \u00B7 "+left+" to go"); }
-    else { const left=Math.max(0,g.min-n); targetTxt=(n>=g.min)?("Done \u2713 \u00B7 "+n+"/"+g.min):("Target "+g.min+" \u00B7 "+left+" left"); }
-    const badge=g.limit?('<span class="badge limit">limit '+g.max+'</span>'):('<span class="badge">'+(g.min===g.max?g.min:(g.min+"\u2013"+g.max))+'</span>');
+    if(g.isLimit){
+      const left=g.goal-n;
+      targetTxt=(n>g.goal)
+        ?`⚠ ${fmt(n-g.goal)} over the daily limit of ${g.goal}`
+        :`Limit ${g.goal} · ${fmt(Math.max(0,left))} left before limit`;
+    } else {
+      const left=Math.max(0,g.goal-n);
+      targetTxt=(n>=g.goal)
+        ?`Done ✓ · ${fmt(n)}/${g.goal}`
+        :`Target ${g.goal} · ${fmt(left)} to go`;
+    }
+    const badge=g.isLimit
+      ?`<span class="badge limit">limit ${g.goal}</span>`
+      :`<span class="badge">${g.goal}</span>`;
+
     card.innerHTML=
-      '<div class="icon">'+g.icon+'</div>'+
-      '<div class="meta"><div class="name">'+g.name+' '+badge+'</div>'+
-      '<div class="target">'+targetTxt+'</div>'+
-      '<div class="dots">'+(dots||'<span class="target">&mdash;</span>')+'</div></div>'+
-      '<div class="controls">'+
-      '<button class="pm minus" data-k="'+g.key+'" data-d="-1" '+(n<=0?"disabled":"")+'>\u2212</button>'+
-      '<div class="count">'+n+'</div>'+
-      '<button class="pm plus" data-k="'+g.key+'" data-d="1">+</button></div>';
+      `<button class="edit-btn" data-idx="${idx}" title="Edit group">✏</button>`+
+      `<div class="icon">${g.icon}</div>`+
+      `<div class="meta">`+
+        `<div class="name">${g.name} ${badge}</div>`+
+        `<div class="target">${targetTxt}</div>`+
+        `<div class="dots">${buildDots(n,g.goal,g.isLimit)}</div>`+
+      `</div>`+
+      `<div class="controls">`+
+        `<button class="pm minus" data-k="${g.key}" ${n<=0?"disabled":""}>−</button>`+
+        `<div class="count">${fmt(n)}</div>`+
+        `<button class="pm plus" data-k="${g.key}">+</button>`+
+      `</div>`;
     wrap.appendChild(card);
   });
+
   wrap.querySelectorAll(".pm").forEach(btn=>{
     btn.addEventListener("click",()=>{
-      const k=btn.dataset.k, d=parseInt(btn.dataset.d,10);
-      counts[k]=Math.max(0,counts[k]+d); save(); renderGroups(); renderHeader();
+      const k=btn.dataset.k;
+      btn.classList.contains("plus") ? addPortion(k) : removePortion(k);
+      renderGroups(); renderHeader();
     });
+  });
+  wrap.querySelectorAll(".edit-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>openEditModal(parseInt(btn.dataset.idx,10)));
   });
 }
 
+// ── render history ────────────────────────────────────────────────────────────
 function renderHistory(){
   const dates=sList("day:").map(k=>k.replace("day:","")).sort().reverse();
   const tbl=document.getElementById("histTable");
-  if(dates.length===0){ tbl.innerHTML='<div class="empty">No days recorded yet.</div>'; return; }
-  const head='<tr><th>Date</th>'+GROUPS.map(g=>'<th>'+g.icon+'</th>').join("")+'<th>\u2713</th></tr>';
+  if(!dates.length){ tbl.innerHTML='<div class="empty">No days recorded yet.</div>'; return; }
+  const head='<tr><th>Date</th>'+GROUPS.map(g=>`<th>${g.icon}</th>`).join("")+'<th>✓</th></tr>';
   let rows="";
   dates.forEach(dt=>{
-    const raw=sGet("day:"+dt); const c=raw?JSON.parse(raw):blank();
-    const cells=GROUPS.map(g=>{ const v=c[g.key]||0; let cls="cellunder";
-      if(g.limit){ cls=v>g.max?"cellover":(v>0?"cellok":"cellunder"); } else { cls=v>=g.min?"cellok":"cellunder"; }
-      return '<td class="'+cls+'">'+v+'</td>'; }).join("");
-    const done=dayComplete(c)?'<td class="check">\u2713</td>':'<td></td>';
-    rows+='<tr><td class="date">'+prettyDate(dt)+'</td>'+cells+done+'</tr>';
+    const raw=sGet("day:"+dt); const c=raw?JSON.parse(raw):{};
+    const cells=GROUPS.map(g=>{
+      const v=c[g.key]||0;
+      let cls=g.isLimit?(v>g.goal?"cellover":v>0?"cellok":"cellunder"):(v>=g.goal?"cellok":"cellunder");
+      return `<td class="${cls}">${fmt(v)}</td>`;
+    }).join("");
+    const done=dayComplete(c)?`<td class="check">✓</td>`:'<td></td>';
+    rows+=`<tr><td class="date">${prettyDate(dt)}</td>${cells}${done}</tr>`;
   });
   tbl.innerHTML='<table>'+head+rows+'</table>';
 }
 
+// ── export CSV ────────────────────────────────────────────────────────────────
 function exportCSV(){
   const dates=sList("day:").map(k=>k.replace("day:","")).sort();
-  const header=["Date",...GROUPS.map(g=>g.name),"Day complete"];
-  const lines=[header.join(",")];
-  dates.forEach(dt=>{ const raw=sGet("day:"+dt); const c=raw?JSON.parse(raw):blank();
-    lines.push([dt,...GROUPS.map(g=>c[g.key]||0),dayComplete(c)?"Yes":"No"].join(",")); });
+  const hdr=["Date",...GROUPS.map(g=>g.name),"Day complete",...GROUPS.map(g=>g.name+" Timestamps")];
+  const lines=[hdr.join(",")];
+  dates.forEach(dt=>{
+    const raw=sGet("day:"+dt); const c=raw?JSON.parse(raw):{};
+    const tsRaw=sGet("ts:"+dt); const ts=tsRaw?JSON.parse(tsRaw):{};
+    const vals=GROUPS.map(g=>c[g.key]||0);
+    const tsCols=GROUPS.map(g=>'"'+((ts[g.key]||[]).join("|"))+'"');
+    lines.push([dt,...vals,dayComplete(c)?"Yes":"No",...tsCols].join(","));
+  });
   const blob=new Blob([lines.join("\n")],{type:"text/csv"});
-  const url=URL.createObjectURL(blob); const a=document.createElement("a");
-  a.href=url; a.download="portion-tracker-history.csv"; document.body.appendChild(a); a.click(); a.remove();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="portion-tracker-history.csv";
+  document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 
+// ── emoji suggestion ──────────────────────────────────────────────────────────
+const EMOJI_MAP=[
+  [/water|liquid|hydrat/i,"💧"],[/coffee|espresso|latte/i,"☕"],
+  [/tea/i,"🍵"],[/alcohol|beer|wine|spirit/i,"🍷"],
+  [/sugar|candy|lolly/i,"🍬"],[/chocolate|cocoa/i,"🍫"],
+  [/snack|chip|crisp|popcorn/i,"🍿"],[/fish|seafood|salmon|tuna/i,"🐟"],
+  [/meat|beef|pork|steak|lamb/i,"🥩"],[/chicken|poultry|turkey/i,"🍗"],
+  [/egg/i,"🥚"],[/bean|legume|lentil|chickpea/i,"🫘"],
+  [/nut|almond|cashew|peanut|walnut/i,"🥜"],[/oat|grain|quinoa/i,"🌾"],
+  [/pasta|noodle|spaghetti/i,"🍝"],[/bread|toast|bagel/i,"🍞"],
+  [/veg|vegetable|salad|greens/i,"🥦"],[/fruit|berry|apple|orange|banana/i,"🍎"],
+  [/dairy|milk|yogurt|yoghurt/i,"🥛"],[/cheese/i,"🧀"],
+  [/fat|oil|butter/i,"🫙"],[/avocado/i,"🥑"],
+  [/protein/i,"🍗"],[/supplement|vitamin|pill/i,"💊"],
+  [/juice|smoothie/i,"🧃"],[/soda|pop|cola|fizz/i,"🥤"],
+  [/soup|broth|stew/i,"🍲"],[/pizza/i,"🍕"],
+  [/treat|cheat|dessert|cake|cookie/i,"🎂"],[/cereal/i,"🥣"],
+  [/rice/i,"🍚"],[/wrap|sandwich|sub/i,"🌯"],
+  [/other|misc|extra/i,"🍽️"],
+];
+function suggestEmoji(name){
+  for(const [re,e] of EMOJI_MAP) if(re.test(name)) return e;
+  return "🍽️";
+}
+
+// ── modal helpers ─────────────────────────────────────────────────────────────
+let activeOverlay=null;
+function openModal(inner){
+  closeModal();
+  const ov=document.createElement("div"); ov.className="overlay";
+  const md=document.createElement("div"); md.className="modal";
+  md.appendChild(inner);
+  ov.appendChild(md);
+  ov.addEventListener("click",e=>{ if(e.target===ov) closeModal(); });
+  document.body.appendChild(ov);
+  activeOverlay=ov;
+  document.body.style.overflow="hidden";
+}
+function closeModal(){
+  if(activeOverlay){ activeOverlay.remove(); activeOverlay=null; document.body.style.overflow=""; }
+}
+function el(tag,cls,txt){
+  const e=document.createElement(tag);
+  if(cls) e.className=cls;
+  if(txt!=null) e.textContent=txt;
+  return e;
+}
+function makeField(label,inputAttrs={}){
+  const wrap=el("div","mfield");
+  const lbl=el("label","",label); wrap.appendChild(lbl);
+  const inp=el("input"); Object.assign(inp,inputAttrs); wrap.appendChild(inp);
+  return {wrap,inp};
+}
+function makeToggle(checked){
+  const lbl=el("label","tswitch");
+  const inp=el("input"); inp.type="checkbox"; inp.checked=checked;
+  const sl=el("span","tslider");
+  lbl.appendChild(inp); lbl.appendChild(sl);
+  return {label:lbl, get checked(){ return inp.checked; }};
+}
+
+// ── edit group modal ──────────────────────────────────────────────────────────
+function openEditModal(idx){
+  const g=GROUPS[idx];
+  const wrap=el("div");
+
+  const title=el("div","modal-title","Edit Group"); wrap.appendChild(title);
+
+  const {wrap:nf, inp:nameInp}=makeField("Group Name",{type:"text",value:g.name,placeholder:"e.g. Vegetables"});
+  wrap.appendChild(nf);
+
+  // emoji field
+  const ef=el("div","mfield"); ef.appendChild(el("label","","Icon (emoji)"));
+  const erow=el("div","emoji-row");
+  const eprev=el("div","emoji-preview",g.icon);
+  const einp=el("input"); einp.type="text"; einp.value=g.icon; einp.className="emoji-input";
+  einp.addEventListener("input",()=>{ eprev.textContent=einp.value||"?"; });
+  erow.appendChild(eprev); erow.appendChild(einp); ef.appendChild(erow);
+  const sbtn=el("button","suggest-btn","✨ Auto-suggest from name");
+  sbtn.type="button";
+  sbtn.addEventListener("click",()=>{ const s=suggestEmoji(nameInp.value||g.name); einp.value=s; eprev.textContent=s; });
+  ef.appendChild(sbtn); wrap.appendChild(ef);
+
+  const {wrap:gf, inp:goalInp}=makeField("Goal / Limit (whole portions)",{type:"number",value:g.goal,min:0,max:99});
+  wrap.appendChild(gf);
+
+  const trow=el("div","toggle-row");
+  const tinfo=el("div","toggle-info");
+  tinfo.appendChild(el("div","tl","This is a limit group"));
+  tinfo.appendChild(el("div","ts","Doesn’t count toward the streak; tracks a daily maximum instead"));
+  const tog=makeToggle(g.isLimit);
+  trow.appendChild(tinfo); trow.appendChild(tog.label); wrap.appendChild(trow);
+
+  const actions=el("div","modal-actions");
+  const delBtn=el("button","mbtn danger","Delete");
+  const cancelBtn=el("button","mbtn secondary","Cancel");
+  const saveBtn=el("button","mbtn primary","Save");
+  actions.appendChild(delBtn); actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+  wrap.appendChild(actions);
+
+  saveBtn.addEventListener("click",()=>{
+    const newGoal=parseInt(goalInp.value,10);
+    if(!nameInp.value.trim()||isNaN(newGoal)||newGoal<0){ alert("Please enter a valid name and goal."); return; }
+    GROUPS[idx]={...GROUPS[idx], name:nameInp.value.trim(), icon:einp.value.trim()||"🍽️", goal:newGoal, isLimit:tog.checked};
+    saveGroups(); closeModal(); load(current); renderGroups(); renderHeader();
+  });
+  cancelBtn.addEventListener("click",closeModal);
+  delBtn.addEventListener("click",()=>{
+    if(!confirm(`Delete "${g.name}"? Recorded data for this group is preserved but won't be shown.`)) return;
+    GROUPS.splice(idx,1); saveGroups(); closeModal(); load(current); renderGroups(); renderHeader();
+  });
+
+  openModal(wrap);
+}
+
+// ── add group modal ───────────────────────────────────────────────────────────
+function openAddModal(){
+  const wrap=el("div");
+  const title=el("div","modal-title","Add Group"); wrap.appendChild(title);
+
+  const {wrap:nf, inp:nameInp}=makeField("Group Name",{type:"text",placeholder:"e.g. Water"});
+  wrap.appendChild(nf);
+
+  const ef=el("div","mfield"); ef.appendChild(el("label","","Icon (emoji)"));
+  const erow=el("div","emoji-row");
+  const eprev=el("div","emoji-preview","🍽️");
+  const einp=el("input"); einp.type="text"; einp.value="🍽️"; einp.className="emoji-input";
+  einp.addEventListener("input",()=>{ eprev.textContent=einp.value||"?"; });
+  nameInp.addEventListener("input",()=>{
+    if(!nameInp.value.trim()) return;
+    const s=suggestEmoji(nameInp.value); einp.value=s; eprev.textContent=s;
+  });
+  erow.appendChild(eprev); erow.appendChild(einp); ef.appendChild(erow); wrap.appendChild(ef);
+
+  const {wrap:gf, inp:goalInp}=makeField("Goal / Limit (whole portions)",{type:"number",value:3,min:0,max:99});
+  wrap.appendChild(gf);
+
+  const trow=el("div","toggle-row");
+  const tinfo=el("div","toggle-info");
+  tinfo.appendChild(el("div","tl","This is a limit group"));
+  tinfo.appendChild(el("div","ts","Doesn’t count toward the streak; tracks a daily maximum instead"));
+  const tog=makeToggle(false);
+  trow.appendChild(tinfo); trow.appendChild(tog.label); wrap.appendChild(trow);
+
+  const actions=el("div","modal-actions");
+  const cancelBtn=el("button","mbtn secondary","Cancel");
+  const addBtn=el("button","mbtn primary","Add Group");
+  actions.appendChild(cancelBtn); actions.appendChild(addBtn);
+  wrap.appendChild(actions);
+
+  addBtn.addEventListener("click",()=>{
+    const newGoal=parseInt(goalInp.value,10);
+    if(!nameInp.value.trim()||isNaN(newGoal)||newGoal<0){ alert("Please enter a valid name and goal."); return; }
+    const key="g"+Date.now().toString(36);
+    GROUPS.push({key, name:nameInp.value.trim(), icon:einp.value.trim()||"🍽️", goal:newGoal, isLimit:tog.checked});
+    saveGroups(); closeModal(); load(current); renderGroups(); renderHeader();
+  });
+  cancelBtn.addEventListener("click",closeModal);
+
+  openModal(wrap);
+}
+
+// ── wiring ────────────────────────────────────────────────────────────────────
 function refresh(){ load(current); renderGroups(); renderHeader(); }
 document.getElementById("prev").onclick=()=>{ const d=parseYmd(current); d.setDate(d.getDate()-1); current=ymd(d); refresh(); };
 document.getElementById("next").onclick=()=>{ const d=parseYmd(current); d.setDate(d.getDate()+1); current=ymd(d); refresh(); };
-document.getElementById("resetDay").onclick=()=>{ counts=blank(); save(); renderGroups(); renderHeader(); };
+document.getElementById("resetDay").onclick=()=>{ counts=blankCounts(); dayTs=blankTs(); save(); renderGroups(); renderHeader(); };
 document.getElementById("exportCsv").onclick=exportCSV;
-const tT=document.getElementById("tabToday"),tH=document.getElementById("tabHistory");
-const vT=document.getElementById("viewToday"),vH=document.getElementById("viewHistory");
-tT.onclick=()=>{tT.classList.add("on");tH.classList.remove("on");vT.style.display="";vH.style.display="none";};
-tH.onclick=()=>{tH.classList.add("on");tT.classList.remove("on");vH.style.display="";vT.style.display="none";renderHistory();};
+document.getElementById("addGroupBtn").onclick=openAddModal;
+const tT=document.getElementById("tabToday"), tH=document.getElementById("tabHistory");
+const vT=document.getElementById("viewToday"), vH=document.getElementById("viewHistory");
+tT.onclick=()=>{ tT.classList.add("on"); tH.classList.remove("on"); vT.style.display=""; vH.style.display="none"; };
+tH.onclick=()=>{ tH.classList.add("on"); tT.classList.remove("on"); vH.style.display=""; vT.style.display="none"; renderHistory(); };
 refresh();
 </script>
