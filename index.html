@@ -42,10 +42,10 @@
   .overall-label{font-size:12px;color:var(--muted);margin-top:6px;display:flex;
     justify-content:space-between;align-items:center}
   .tabs{display:flex;gap:6px;margin:14px 0 4px}
-  .tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;
+  .tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;
     border:1px solid var(--line);background:var(--card);border-radius:11px;
-    color:var(--muted);cursor:pointer}
-  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+    color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .tab.on{background:var(--accent-soft);border-color:var(--accent)}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);padding:14px;margin:10px 0;display:flex;
     align-items:center;gap:12px;position:relative}
@@ -172,8 +172,29 @@
 
 <div class="wrap">
   <div class="tabs">
-    <div class="tab on" id="tabToday">Today</div>
-    <div class="tab" id="tabHistory">History</div>
+    <div class="tab on" id="tabToday" title="Today">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="4" width="14" height="13" rx="2"/>
+        <line x1="3" y1="8" x2="17" y2="8"/>
+        <line x1="7" y1="2" x2="7" y2="6"/>
+        <line x1="13" y1="2" x2="13" y2="6"/>
+        <circle cx="10" cy="13" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <div class="tab" id="tabHistory" title="History">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="10" cy="10" r="7"/>
+        <polyline points="10,7 10,10 13,12"/>
+      </svg>
+    </div>
+    <div class="tab" id="tabStats" title="Statistics">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="11" width="3.5" height="6" rx="0.8" fill="currentColor" stroke="none"/>
+        <rect x="8.25" y="7" width="3.5" height="10" rx="0.8" fill="currentColor" stroke="none"/>
+        <rect x="13.5" y="13" width="3.5" height="4" rx="0.8" fill="currentColor" stroke="none"/>
+        <line x1="2" y1="17" x2="18" y2="17"/>
+      </svg>
+    </div>
   </div>
   <div id="viewToday">
     <div id="groups"></div>
@@ -185,6 +206,9 @@
     <div class="savewarn" id="saveWarn">&#9888; Saving is disabled in this browser context &mdash; data won&rsquo;t persist. Host the file or Add to Home Screen.</div>
     <div class="hint">Each tap of + adds half a portion &mdash; tap twice for a whole portion.<br>
       Tap ✏ on any card to edit its goal or delete it. Limit groups don&rsquo;t count toward the streak.</div>
+  </div>
+  <div id="viewStats" style="display:none">
+    <div class="empty">Statistics &amp; insights coming soon.</div>
   </div>
   <div id="viewHistory" style="display:none">
     <div class="footer-actions">
@@ -589,9 +613,17 @@ document.getElementById("next").onclick=()=>{ const d=parseYmd(current); d.setDa
 document.getElementById("resetDay").onclick=()=>{ counts=blankCounts(); dayTs=blankTs(); save(); renderGroups(); renderHeader(); };
 document.getElementById("exportCsv").onclick=exportCSV;
 document.getElementById("addGroupBtn").onclick=openAddModal;
-const tT=document.getElementById("tabToday"), tH=document.getElementById("tabHistory");
-const vT=document.getElementById("viewToday"), vH=document.getElementById("viewHistory");
-tT.onclick=()=>{ tT.classList.add("on"); tH.classList.remove("on"); vT.style.display=""; vH.style.display="none"; };
-tH.onclick=()=>{ tH.classList.add("on"); tT.classList.remove("on"); vH.style.display=""; vT.style.display="none"; renderHistory(); };
+const tT=document.getElementById("tabToday"), tH=document.getElementById("tabHistory"), tS=document.getElementById("tabStats");
+const vT=document.getElementById("viewToday"), vH=document.getElementById("viewHistory"), vS=document.getElementById("viewStats");
+function showTab(active){
+  [tT,tH,tS].forEach(t=>t.classList.remove("on"));
+  [vT,vH,vS].forEach(v=>v.style.display="none");
+  active.tab.classList.add("on");
+  active.view.style.display="";
+  if(active.onShow) active.onShow();
+}
+tT.onclick=()=>showTab({tab:tT,view:vT});
+tH.onclick=()=>showTab({tab:tH,view:vH,onShow:renderHistory});
+tS.onclick=()=>showTab({tab:tS,view:vS});
 refresh();
 </script>
