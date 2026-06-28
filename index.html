@@ -107,6 +107,43 @@
   .savewarn{font-size:11px;text-align:center;color:var(--over);margin-top:8px;display:none}
   .savewarn.show{display:block}
 
+  /* ── stats ── */
+  .stat-summary{display:flex;gap:10px;margin:12px 0}
+  .stat-card{flex:1;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px 10px;text-align:center;box-shadow:var(--shadow)}
+  .sc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);margin-bottom:6px}
+  .sc-val{font-size:30px;font-weight:800;color:var(--accent);line-height:1}
+  .sc-sub{font-size:11px;color:var(--muted);margin-top:4px}
+  .hm-wrap{background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px;margin:10px 0;box-shadow:var(--shadow)}
+  .hm-title{font-size:12px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--muted);margin-bottom:8px}
+  .hm-day-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+  .hm-day-lbl{font-size:9px;color:var(--muted);text-align:center;font-weight:600}
+  .hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .hm-cell{aspect-ratio:1;border-radius:3px;background:var(--line)}
+  .hm-cell.done{background:var(--accent)}
+  .hm-cell.part{background:#8fc5a4}
+  .hm-cell.future{background:transparent;border:1px solid var(--line);opacity:.25}
+  .stat-section-label{font-size:12px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--muted);margin:16px 0 8px}
+  .gsr{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;margin:8px 0;box-shadow:var(--shadow)}
+  .gsr-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .gsr-icon{font-size:20px;width:28px;text-align:center;flex:none}
+  .gsr-name{font-size:14px;font-weight:700;flex:1}
+  .gsr-gbadge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;
+    background:var(--accent-soft);color:var(--accent);letter-spacing:.3px;white-space:nowrap}
+  .gsr-gbadge.limit{background:var(--limit-soft);color:var(--limit)}
+  .gsr-metrics{display:flex;border-top:1px solid var(--line);padding-top:10px}
+  .gsr-metric{flex:1;text-align:center}
+  .gsr-metric+.gsr-metric{border-left:1px solid var(--line)}
+  .gsr-mval{font-size:17px;font-weight:800;color:var(--accent);line-height:1}
+  .gsr-mval.miss{color:var(--limit)}
+  .gsr-mlbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;
+    letter-spacing:.3px;margin-top:3px}
+
   /* ── modal ── */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
     display:flex;align-items:flex-end;justify-content:center;
@@ -207,9 +244,7 @@
     <div class="hint">Each tap of + adds half a portion &mdash; tap twice for a whole portion.<br>
       Tap ✏ on any card to edit its goal or delete it. Limit groups don&rsquo;t count toward the streak.</div>
   </div>
-  <div id="viewStats" style="display:none">
-    <div class="empty">Statistics &amp; insights coming soon.</div>
-  </div>
+  <div id="viewStats" style="display:none"></div>
   <div id="viewHistory" style="display:none">
     <div class="footer-actions">
       <button class="btn" id="exportCsv">&#8675; Export CSV (Excel)</button>
@@ -606,6 +641,119 @@ function openAddModal(){
   openModal(wrap);
 }
 
+// ── stats helpers ─────────────────────────────────────────────────────────────
+function lastNDates(n){
+  const out=[],d=new Date();
+  for(let i=n-1;i>=0;i--){ const dd=new Date(d); dd.setDate(d.getDate()-i); out.push(ymd(dd)); }
+  return out;
+}
+function completionRate(n){
+  const dates=lastNDates(n); let done=0;
+  dates.forEach(dt=>{ const raw=sGet("day:"+dt); if(raw&&dayComplete(JSON.parse(raw))) done++; });
+  return {done,total:n,pct:n>0?Math.round(done/n*100):0};
+}
+function rollingAvg(key,n){
+  const dates=lastNDates(n); let sum=0;
+  dates.forEach(dt=>{ const raw=sGet("day:"+dt); sum+=raw?(JSON.parse(raw)[key]||0):0; });
+  return Math.round(sum/n*10)/10;
+}
+function hitRate(key,n){
+  const g=GROUPS.find(g=>g.key===key);
+  const dates=lastNDates(n); let hit=0;
+  dates.forEach(dt=>{
+    const raw=sGet("day:"+dt), v=raw?(JSON.parse(raw)[key]||0):0;
+    if(g.isLimit?v<=g.goal:v>=g.goal) hit++;
+  });
+  return {hit,total:n};
+}
+
+// ── render stats ──────────────────────────────────────────────────────────────
+function renderStats(){
+  const view=document.getElementById("viewStats");
+  view.innerHTML="";
+
+  // completion summary cards
+  const sumRow=document.createElement("div"); sumRow.className="stat-summary";
+  [7,30].forEach(n=>{
+    const r=completionRate(n);
+    const c=document.createElement("div"); c.className="stat-card";
+    c.innerHTML=`<div class="sc-label">${n}-day</div>`+
+      `<div class="sc-val">${r.pct}%</div>`+
+      `<div class="sc-sub">${r.done} of ${r.total} days complete</div>`;
+    sumRow.appendChild(c);
+  });
+  view.appendChild(sumRow);
+
+  // 6-week heatmap
+  const hmWrap=document.createElement("div"); hmWrap.className="hm-wrap";
+  const hmTitle=document.createElement("div"); hmTitle.className="hm-title";
+  hmTitle.textContent="Last 6 weeks"; hmWrap.appendChild(hmTitle);
+
+  const dayRow=document.createElement("div"); dayRow.className="hm-day-row";
+  ["M","T","W","T","F","S","S"].forEach(d=>{
+    const s=document.createElement("span"); s.className="hm-day-lbl"; s.textContent=d;
+    dayRow.appendChild(s);
+  });
+  hmWrap.appendChild(dayRow);
+
+  const grid=document.createElement("div"); grid.className="hm-grid";
+  const todayD=new Date(), todayStr=ymd(todayD);
+  const dow=(todayD.getDay()+6)%7; // 0=Mon … 6=Sun
+  const start=new Date(todayD); start.setDate(todayD.getDate()-dow-35);
+
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const ds=ymd(d);
+    const cell=document.createElement("div");
+    if(ds>todayStr){
+      cell.className="hm-cell future";
+    } else {
+      const raw=sGet("day:"+ds), c=raw?JSON.parse(raw):null;
+      if(c&&dayComplete(c))                                     cell.className="hm-cell done";
+      else if(c&&coreGroups().some(g=>(c[g.key]||0)>0))       cell.className="hm-cell part";
+      else                                                      cell.className="hm-cell";
+    }
+    cell.title=ds; grid.appendChild(cell);
+  }
+  hmWrap.appendChild(grid);
+  view.appendChild(hmWrap);
+
+  // per-group stats
+  const secLabel=document.createElement("div"); secLabel.className="stat-section-label";
+  secLabel.textContent="Per Group — Last 7 Days"; view.appendChild(secLabel);
+
+  GROUPS.forEach(g=>{
+    const hr=hitRate(g.key,7);
+    const avg3=rollingAvg(g.key,3);
+    const avg7=rollingAvg(g.key,7);
+    const hitCls=(hr.total>0&&hr.hit/hr.total<0.7)?"miss":"";
+    const badgeCls=g.isLimit?"limit":"";
+    const badgeLabel=g.isLimit?`limit ${g.goal}`:`goal ${g.goal}`;
+    const row=document.createElement("div"); row.className="gsr";
+    row.innerHTML=
+      `<div class="gsr-head">`+
+        `<span class="gsr-icon">${g.icon}</span>`+
+        `<span class="gsr-name">${g.name}</span>`+
+        `<span class="gsr-gbadge ${badgeCls}">${badgeLabel}</span>`+
+      `</div>`+
+      `<div class="gsr-metrics">`+
+        `<div class="gsr-metric">`+
+          `<div class="gsr-mval ${hitCls}">${hr.hit}/${hr.total}</div>`+
+          `<div class="gsr-mlbl">days hit</div>`+
+        `</div>`+
+        `<div class="gsr-metric">`+
+          `<div class="gsr-mval">${avg3}</div>`+
+          `<div class="gsr-mlbl">3-day avg</div>`+
+        `</div>`+
+        `<div class="gsr-metric">`+
+          `<div class="gsr-mval">${avg7}</div>`+
+          `<div class="gsr-mlbl">7-day avg</div>`+
+        `</div>`+
+      `</div>`;
+    view.appendChild(row);
+  });
+}
+
 // ── wiring ────────────────────────────────────────────────────────────────────
 function refresh(){ load(current); renderGroups(); renderHeader(); }
 document.getElementById("prev").onclick=()=>{ const d=parseYmd(current); d.setDate(d.getDate()-1); current=ymd(d); refresh(); };
@@ -624,6 +772,6 @@ function showTab(active){
 }
 tT.onclick=()=>showTab({tab:tT,view:vT});
 tH.onclick=()=>showTab({tab:tH,view:vH,onShow:renderHistory});
-tS.onclick=()=>showTab({tab:tS,view:vS});
+tS.onclick=()=>showTab({tab:tS,view:vS,onShow:renderStats});
 refresh();
 </script>
