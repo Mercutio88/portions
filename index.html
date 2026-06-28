@@ -141,6 +141,7 @@
   .gsr-metric+.gsr-metric{border-left:1px solid var(--line)}
   .gsr-mval{font-size:17px;font-weight:800;color:var(--accent);line-height:1}
   .gsr-mval.miss{color:var(--limit)}
+  .gsr-denom{font-size:0.52em;font-weight:700;color:var(--muted)}
   .gsr-mlbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;
     letter-spacing:.3px;margin-top:3px}
 
@@ -727,14 +728,11 @@ function renderStats(){
     const avg3=rollingAvg(g.key,3);
     const avg7=rollingAvg(g.key,7);
     const hitCls=(hr.total>0&&hr.hit/hr.total<0.7)?"miss":"";
-    const badgeCls=g.isLimit?"limit":"";
-    const badgeLabel=g.isLimit?`limit ${g.goal}`:`goal ${g.goal}`;
     const row=document.createElement("div"); row.className="gsr";
     row.innerHTML=
       `<div class="gsr-head">`+
         `<span class="gsr-icon">${g.icon}</span>`+
         `<span class="gsr-name">${g.name}</span>`+
-        `<span class="gsr-gbadge ${badgeCls}">${badgeLabel}</span>`+
       `</div>`+
       `<div class="gsr-metrics">`+
         `<div class="gsr-metric">`+
@@ -742,11 +740,11 @@ function renderStats(){
           `<div class="gsr-mlbl">days hit</div>`+
         `</div>`+
         `<div class="gsr-metric">`+
-          `<div class="gsr-mval">${avg3}</div>`+
+          `<div class="gsr-mval">${avg3}<span class="gsr-denom">/${g.goal}</span></div>`+
           `<div class="gsr-mlbl">3-day avg</div>`+
         `</div>`+
         `<div class="gsr-metric">`+
-          `<div class="gsr-mval">${avg7}</div>`+
+          `<div class="gsr-mval">${avg7}<span class="gsr-denom">/${g.goal}</span></div>`+
           `<div class="gsr-mlbl">7-day avg</div>`+
         `</div>`+
       `</div>`;
