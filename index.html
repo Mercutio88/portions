@@ -141,7 +141,10 @@
   .gsr-metric+.gsr-metric{border-left:1px solid var(--line)}
   .gsr-mval{font-size:17px;font-weight:800;color:var(--accent);line-height:1}
   .gsr-mval.miss{color:var(--limit)}
-  .gsr-denom{font-size:0.52em;font-weight:700;color:var(--muted)}
+  .gsr-denom{font-size:1em;font-weight:700;color:#9ca3af}
+  .clr-good{color:var(--accent)}
+  .clr-warn{color:#d08b2e}
+  .clr-bad{color:var(--over)}
   .gsr-mlbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;
     letter-spacing:.3px;margin-top:3px}
 
@@ -653,6 +656,10 @@ function completionRate(n){
   dates.forEach(dt=>{ const raw=sGet("day:"+dt); if(raw&&dayComplete(JSON.parse(raw))) done++; });
   return {done,total:n,pct:n>0?Math.round(done/n*100):0};
 }
+function avgColor(avg,goal,isLimit){
+  if(isLimit) return avg<=goal?"clr-good":avg<=goal*1.25?"clr-warn":"clr-bad";
+  return avg>=goal?"clr-good":avg>=goal*0.5?"clr-warn":"clr-bad";
+}
 function rollingAvg(key,n){
   const dates=lastNDates(n); let sum=0;
   dates.forEach(dt=>{ const raw=sGet("day:"+dt); sum+=raw?(JSON.parse(raw)[key]||0):0; });
@@ -740,11 +747,11 @@ function renderStats(){
           `<div class="gsr-mlbl">days hit</div>`+
         `</div>`+
         `<div class="gsr-metric">`+
-          `<div class="gsr-mval">${avg3}<span class="gsr-denom">/${g.goal}</span></div>`+
+          `<div class="gsr-mval"><span class="${avgColor(avg3,g.goal,g.isLimit)}">${avg3}</span><span class="gsr-denom">/${g.goal}</span></div>`+
           `<div class="gsr-mlbl">3-day avg</div>`+
         `</div>`+
         `<div class="gsr-metric">`+
-          `<div class="gsr-mval">${avg7}<span class="gsr-denom">/${g.goal}</span></div>`+
+          `<div class="gsr-mval"><span class="${avgColor(avg7,g.goal,g.isLimit)}">${avg7}</span><span class="gsr-denom">/${g.goal}</span></div>`+
           `<div class="gsr-mlbl">7-day avg</div>`+
         `</div>`+
       `</div>`;
